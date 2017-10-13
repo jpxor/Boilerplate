@@ -1,2 +1,3 @@
+/I ..\src\include
 /I ..\dep\glfw\include 
 /I ..\dep\glew\include

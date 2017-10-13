@@ -1,11 +1,13 @@
 @echo off
 
+REM EMBER: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>vcvarsall.bat amd64
+
 REM store calling dir, move to src dir
 set CallDir=%CD%
 cd %~dp0\..\src
 
 REM Compile and Link
-cl /EHsc /MD ^
+cl /EHsc /MD /W4 ^
   @..\build\incpath.txt ^
   @..\build\srcfiles.txt ^
   @..\build\mslibs.txt ^
