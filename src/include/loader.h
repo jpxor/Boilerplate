@@ -1,18 +1,20 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "mesh.h"
 
 using std::vector;
+using std::unique_ptr;
 
-class Loader{
+class MeshLoader{
 public:
-    Mesh* loadToVAO(vector<float>& positions);
+    unique_ptr<Mesh> load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices);
+    void unload(unique_ptr<Mesh>);
+    ~MeshLoader();
 
 private:
-    int createVAO();
-    void unbindVAO();
-    void storeDataInAttributeList(int index, vector<float>& data );
-    ~Loader();
+    GLuint storeDataInAttributeList(int index, int attr_size, vector<float>& data );
+    GLuint createAndBindIndiceBuffer(vector<int>& indices);
 };
 

@@ -7,7 +7,7 @@ set CallDir=%CD%
 cd %~dp0\..\src
 
 REM Compile and Link
-cl /EHsc /MD /W4 ^
+cl /std:c++14 /EHsc /MD /W4 ^
   @..\build\incpath.txt ^
   @..\build\srcfiles.txt ^
   @..\build\mslibs.txt ^

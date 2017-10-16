@@ -10,6 +10,6 @@ private:
 public: 
     Mesh(GLuint vaoid, size_t vcount);
     GLuint vao();
-    size_t vcount();
+    GLuint vcount();
 };
 

@@ -1,7 +1,27 @@
 #include <glewstatic.h>
 #include <GLFW/glfw3.h>
-
+#include <memory>
+#include <vector>
 #include <stdio.h>
+#include <mesh.h>
+#include <loader.h>
+
+using std::vector;
+using std::unique_ptr;
+
+void render(unique_ptr<Mesh>& mesh){
+    glBindVertexArray( mesh->vao() );
+    glEnableVertexAttribArray(0);//vertices = 0
+    glEnableVertexAttribArray(1);//textures = 1
+    glEnableVertexAttribArray(2);//normals = 2
+
+    glDrawElements(GL_TRIANGLES, mesh->vcount(), GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(0); 
+    glDisableVertexAttribArray(1); 
+    glDisableVertexAttribArray(2); 
+    glBindVertexArray(0); 
+}
 
 int main(void)
 {
@@ -31,17 +51,37 @@ int main(void)
     }
     fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
+    vector<float> positions;
+    vector<float> texcoords;
+    vector<float> normals;
+    vector<int> indices; 
+
+    positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
+    positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
+    positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
+
+    texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
+    texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
+    texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
+
+    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+
+    indices.push_back(0);
+    indices.push_back(1);
+    indices.push_back(2);
+    
+    MeshLoader meshloader; 
+    auto mesh = meshloader.load(positions, texcoords, normals, indices);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f);
-        glVertex2f( 0.0f,  0.5f);
-        glVertex2f( 0.5f, -0.5f);
-        glEnd();
+        render(mesh);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
