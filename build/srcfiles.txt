@@ -1,3 +1,0 @@
-main.cpp 
-core\mesh.cpp
-core\loader.cpp

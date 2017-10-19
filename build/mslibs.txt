@@ -1,7 +1,0 @@
-gdi32.lib 
-kernel32.lib 
-user32.lib 
-shell32.lib 
-opengl32.lib
-..\dep\glfw\win64\glfw3.lib 
-..\dep\glew\lib\Release\x64\glew32s.lib

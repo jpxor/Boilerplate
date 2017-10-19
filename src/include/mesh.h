@@ -3,9 +3,9 @@
 #include <glewstatic.h>
 
 class Mesh {
-private: 
+private:
     GLuint vao_id;
-    size_t vert_count;
+    GLuint vert_count;
 
 public: 
     Mesh(GLuint vaoid, size_t vcount);
