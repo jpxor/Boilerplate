@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glewstatic.h>
+#include "glewstatic.h"
 
 class Mesh {
 private:
