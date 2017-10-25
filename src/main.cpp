@@ -91,6 +91,9 @@ int main(void)
         glfwPollEvents();
     }
 
+    //cleanup
+    meshloader.unload(std::move(mesh));
+
     glfwTerminate();
     return 0;
 }

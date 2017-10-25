@@ -1,12 +1,15 @@
 
 #include "glewstatic.h"
-#include <vector>
-#include <memory>
 #include <loader.h>
- 
+
+#include <memory>
+#include <vector>
+#include <unordered_map>
+
 using std::vector;
 using std::unique_ptr;
 using std::make_unique;
+using std::unordered_map;
 
 //private constants
 const int VERTPOS_DATA = 0;
@@ -14,14 +17,12 @@ const int TEXCOOR_DATA = 1;
 const int NORMALS_DATA = 2;
 
 //for cleanup
-vector<GLuint> vaolist = {};
-vector<GLuint> vbolist = {};
-//map[mesh]->{vbolists}
+unordered_map<GLuint, vector<GLuint>> cleanup_map = {};
  
+
 unique_ptr<Mesh> MeshLoader::load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices){
     GLuint vao;
     glGenVertexArrays(1, &vao);
-    vaolist.push_back(vao);
 
     glBindVertexArray(vao);
     GLuint vbo_indx = createAndBindIndiceBuffer(indices);
@@ -30,10 +31,18 @@ unique_ptr<Mesh> MeshLoader::load(vector<float>& positions, vector<float>& texco
     GLuint vbo_norm = storeDataInAttributeList( NORMALS_DATA, 3, normals );
     glBindVertexArray(0);//unbind
 
-    // Mesh* mesh = new Mesh(vao, indices.size() );
+    cleanup_map.emplace(vao, vector<GLuint>() );
+    auto vbos = cleanup_map[vao];
+
+    vbos.push_back(vbo_indx);
+    vbos.push_back(vbo_vert);
+    vbos.push_back(vbo_text);
+    vbos.push_back(vbo_norm);
+    
     auto mesh = make_unique<Mesh>(vao, indices.size() ); // C++14
     return mesh;
 }
+
 
 GLuint MeshLoader::createAndBindIndiceBuffer(vector<int>& indices){
     int* rawdata = &indices[0]; 
@@ -41,7 +50,6 @@ GLuint MeshLoader::createAndBindIndiceBuffer(vector<int>& indices){
 
     GLuint vbo;
     glGenBuffers(1, &vbo);
-    vbolist.push_back(vbo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, bytesize, rawdata, GL_STATIC_DRAW);
@@ -50,13 +58,13 @@ GLuint MeshLoader::createAndBindIndiceBuffer(vector<int>& indices){
     return vbo;
 }
  
+
 GLuint MeshLoader::storeDataInAttributeList(int idx, int attr_size, vector<float>& data ){
     float* rawdata = &data[0]; 
     size_t bytesize = sizeof(float) * data.size();
 
     GLuint vbo;
     glGenBuffers(1, &vbo);
-    vbolist.push_back(vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, bytesize, rawdata, GL_STATIC_DRAW);
@@ -68,15 +76,24 @@ GLuint MeshLoader::storeDataInAttributeList(int idx, int attr_size, vector<float
 
 
 void MeshLoader::unload(unique_ptr<Mesh> mesh){
-    //find vbo's in map
+    GLuint vao = mesh->vao();
+    glDeleteVertexArrays( 1, &vao );
+
+    auto vbos = cleanup_map[vao];
+    for(GLuint vbo : vbos){
+        glDeleteBuffers(1, &vbo);
+    }
 }
 
 
 MeshLoader::~MeshLoader(){
-    for(GLuint vao : vaolist){
+    for(auto kv : cleanup_map){
+        GLuint vao = kv.first;
         glDeleteVertexArrays( 1, &vao );
-    }
-    for(GLuint vbo : vbolist){
-        glDeleteBuffers(1, &vbo);
+
+        auto vbos = kv.second;
+        for(GLuint vbo : vbos){
+            glDeleteBuffers(1, &vbo);
+        }
     }
 }
