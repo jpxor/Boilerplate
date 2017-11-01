@@ -1,99 +1,60 @@
 
-#include "glewstatic.h"
+#include "graphics/glewstatic.h"
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <vector>
-#include <stdio.h>
-#include <mesh.h>
-#include <loader.h>
- 
-using std::vector;
-using std::unique_ptr;
+#include <iostream>
+#include <thread>
+#include <string>
 
-void render(unique_ptr<Mesh>& mesh){
-    glBindVertexArray( mesh->vao() );
-    glEnableVertexAttribArray(0);//vertices = 0
-    glEnableVertexAttribArray(1);//textures = 1
-    glEnableVertexAttribArray(2);//normals = 2
+#include "console/console.h"
+#include "window/window.h"
+#include "settings/config.h"
+#include "loop/loop.h"
+#include "events/eventdispatch.h"
+#include "events/eventenums.h"
+#include "graphics/ginit.h"
 
-    glDrawElements(GL_TRIANGLES, mesh->vcount(), GL_UNSIGNED_INT, 0);
-
-    glDisableVertexAttribArray(0); 
-    glDisableVertexAttribArray(1); 
-    glDisableVertexAttribArray(2); 
-    glBindVertexArray(0); 
+void setWindowEvents(Window::Instance window)
+{
+    glfwSetKeyCallback(window.id, [](GLFWwindow* window, int key, int scancode, int action, int mods)->void{
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+            Events::dispatch_now(Events::Window_Event, std::make_unique<Events::Event>(Events::WINDOW_CLOSE)); 
+        }
+    });
+    Events::join_channel(Events::Window_Event, [window](auto& event)->void{
+        if(event->id == Events::WINDOW_CLOSE){
+            window.close();
+        }
+    });
 }
 
-int main(void)
-{
-    GLFWwindow* window;
+void update_callback(double dt){
+    //pre_update(dt);
+    //update(dt);
+    //post_update(dt);
+}
 
-    /* Initialize the library */
-    if (!glfwInit())
-        return -1;
+void render_callback(double dt){
+    //pre_render(dt);
+    //render(dt);
+    //post_render(dt);
+}
 
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Boilerplate", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
+int main(){
+    std::thread consoleThread(Console::start);
+    try{
+        auto settings = Settings::load(); 
+        auto window = Window::init("Boilerplate", settings);
+
+        Graphics::init(settings); 
+        setWindowEvents(window);
+        Loop::run(window, update_callback, render_callback, 40);
     }
-
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
-
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
-      /* Problem: glewInit failed, something is seriously wrong. */
-      fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-      //TODO 
+    catch(const std::exception& e){
+        std::cout << "Exception Caught: " << e.what() << std::endl;
     }
-    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-    vector<float> positions;
-    vector<float> texcoords;
-    vector<float> normals;
-    vector<int> indices; 
-
-    positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-    positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
-    positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-
-    texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
-    texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
-    texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
-
-    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-
-    indices.push_back(0);
-    indices.push_back(1);
-    indices.push_back(2);
-    
-    MeshLoader meshloader; 
-    auto mesh = meshloader.load(positions, texcoords, normals, indices);
-
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        render(mesh);
-
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
-    }
-
-    //cleanup
-    meshloader.unload(std::move(mesh));
-
-    glfwTerminate();
-    return 0;
+    consoleThread.join();
+    Window::terminate();
+    exit(0);
 }

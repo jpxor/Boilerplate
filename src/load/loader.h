@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <memory>
-#include "mesh.h"
+#include "graphics/mesh.h"
 
 using std::vector;
 using std::unique_ptr;

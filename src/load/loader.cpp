@@ -1,6 +1,6 @@
 
-#include "glewstatic.h"
-#include <loader.h>
+#include "graphics/glewstatic.h"
+#include <load/loader.h>
 
 #include <memory>
 #include <vector>
@@ -17,7 +17,7 @@ const int TEXCOOR_DATA = 1;
 const int NORMALS_DATA = 2;
 
 //for cleanup
-unordered_map<GLuint, vector<GLuint>> cleanup_map = {};
+static unordered_map<GLuint, vector<GLuint>> cleanup_map = {};
  
 
 unique_ptr<Mesh> MeshLoader::load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices){
@@ -80,19 +80,21 @@ void MeshLoader::unload(unique_ptr<Mesh> mesh){
     glDeleteVertexArrays( 1, &vao );
 
     auto vbos = cleanup_map[vao];
-    for(GLuint vbo : vbos){
+    cleanup_map.erase(vao);
+    
+    for(const GLuint& vbo : vbos){
         glDeleteBuffers(1, &vbo);
     }
 }
 
 
 MeshLoader::~MeshLoader(){
-    for(auto kv : cleanup_map){
+    for(const auto& kv : cleanup_map){
         GLuint vao = kv.first;
         glDeleteVertexArrays( 1, &vao );
 
         auto vbos = kv.second;
-        for(GLuint vbo : vbos){
+        for(const GLuint& vbo : vbos){
             glDeleteBuffers(1, &vbo);
         }
     }

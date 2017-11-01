@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glewstatic.h"
+#include "graphics/glewstatic.h"
 
 class Mesh {
 private:
@@ -12,4 +12,3 @@ public:
     GLuint vao();
     GLuint vcount();
 };
-
