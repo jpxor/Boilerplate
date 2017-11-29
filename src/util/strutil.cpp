@@ -7,4 +7,7 @@ namespace StringUtil{
         return 0 == text.compare(0, start.length(), start);
     }
 
+    bool contains(std::string str, std::list<std::string> container){
+        return std::end(container) != std::find(std::begin(container), std::end(container), str);
+    }
 }

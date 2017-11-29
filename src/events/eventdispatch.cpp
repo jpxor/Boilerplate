@@ -14,14 +14,14 @@ namespace Events{
     static std::unordered_map<std::string, Channel<Event>> named_channels;
     static std::unordered_map<std::string, std::vector<std::function<void(std::unique_ptr<Event>&)>>> stored_callbacks;
 
-    int join_channel(std::string chan_name, std::function<void(std::unique_ptr<Event>&)> callback){
+    int subscribe(std::string chan_name, std::function<void(std::unique_ptr<Event>&)> callback){
         std::unique_lock<std::mutex> lck(mtx);
         auto& callback_list = stored_callbacks[chan_name];
         callback_list.push_back(callback);
         return callback_list.size()-1;
     }
 
-    void leave_channel(std::string chan_name, int id){
+    void unsubscribe(std::string chan_name, int id){
         std::unique_lock<std::mutex> lck(mtx);
         auto callback_list = stored_callbacks[chan_name];
         callback_list.erase(callback_list.begin()+id);

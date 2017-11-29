@@ -22,7 +22,7 @@ void setWindowEvents(Window::Instance window)
             Events::dispatch_now(Events::Window_Event, std::make_unique<Events::Event>(Events::WINDOW_CLOSE)); 
         }
     });
-    Events::join_channel(Events::Window_Event, [window](auto& event)->void{
+    Events::subscribe(Events::Window_Event, [window](auto& event)->void{
         if(event->id == Events::WINDOW_CLOSE){
             window.close();
         }
@@ -33,6 +33,7 @@ void update_callback(double dt){
     //pre_update(dt);
     //update(dt);
     //post_update(dt);
+    Events::dispatch_waiting_events();
 }
 
 void render_callback(double dt){
@@ -41,7 +42,20 @@ void render_callback(double dt){
     //post_render(dt);
 }
 
+#include "util/fileutil.h"
+
 int main(){
+
+    //test file utils
+    { 
+        std::list<std::string> shader_keys = {"### VERTEX ###", "### FRAGMENT ###", };
+        std::unordered_map<std::string,std::string> shaders;
+        shaders = FileUtil::map_file("../res/shaders/basic.shader", shader_keys);
+        for (auto it : shaders) {
+            std::cout << it.first << ":\n" << it.second << "\n\n";
+        }
+    }
+    
     std::thread consoleThread(Console::start);
     try{
         auto settings = Settings::load(); 
