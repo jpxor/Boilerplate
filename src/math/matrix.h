@@ -131,36 +131,36 @@ namespace bpm{
         M.e[3][3] = 1;
     }
 
-    static inline void make_lookat_rotation(const vec3& pos, const vec3& target, const vec3& up, mat4& M){
-        //i dont understand this one yet
-        //See the OpenGL GLUT documentation for gluLookAt for a description 
-        vec3 f = (target - pos).normalize();
-        vec3 s = (f*up).normalize();
-        vec3 t = s*f;
+    //fails when forward axis aligns with up direction!
+    static inline void make_view(const vec3& pos, const vec3& forward, const vec3& up, mat4& M){
+        //define camera axes (forward, right, up)
+        vec3 f = forward;
+        vec3 r = (f*up).normalize();
+        vec3 u = r*f;
 
-        M.e[0][0] =  s.x;
-        M.e[0][1] =  t.x;
+        M.e[0][0] =  r.x;
+        M.e[0][1] =  u.x;
         M.e[0][2] = -f.x;
         M.e[0][3] =   0.f;
     
-        M.e[1][0] =  s.y;
-        M.e[1][1] =  t.y;
+        M.e[1][0] =  r.y;
+        M.e[1][1] =  u.y;
         M.e[1][2] = -f.y;
         M.e[1][3] =   0.f;
     
-        M.e[2][0] =  s.z;
-        M.e[2][1] =  t.z;
+        M.e[2][0] =  r.z;
+        M.e[2][1] =  u.z;
         M.e[2][2] = -f.z;
         M.e[2][3] =   0.f;
     
-        M.e[3][0] =  0.f;
-        M.e[3][1] =  0.f;
-        M.e[3][2] =  0.f;
+        M.e[3][0] =  -pos.x;
+        M.e[3][1] =  -pos.y;
+        M.e[3][2] =  -pos.z;
         M.e[3][3] =  1.f;
+    }
 
-        mat4 T; 
-        make_translation( vec3(-pos.x, -pos.y, -pos.z), T);
-        M = M*T;//correct order? //needs to be in place!
+    static inline void make_view_lookat(const vec3& pos, const vec3& target, const vec3& up, mat4& M){
+        make_view(pos, (target-pos).normalize(), up, M);
     }
 
     static inline void make_perspective(float y_fov, float aspect, float n, float f, mat4& M) {
