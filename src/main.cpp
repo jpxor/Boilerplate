@@ -15,6 +15,8 @@
 #include "events/eventenums.h"
 #include "graphics/ginit.h"
 
+
+
 void setWindowEvents(Window::Instance window)
 {
     glfwSetKeyCallback(window.id, [](GLFWwindow* window, int key, int scancode, int action, int mods)->void{
@@ -42,20 +44,13 @@ void render_callback(double dt){
     //post_render(dt);
 }
 
-#include "util/fileutil.h"
+#include "test.h"
+
 
 int main(){
 
-    //test file utils
-    { 
-        std::list<std::string> shader_keys = {"### VERTEX ###", "### FRAGMENT ###", };
-        std::unordered_map<std::string,std::string> shaders;
-        shaders = FileUtil::map_file("../res/shaders/basic.shader", shader_keys);
-        for (auto it : shaders) {
-            std::cout << it.first << ":\n" << it.second << "\n\n";
-        }
-    }
-    
+    bptest::run();
+
     std::thread consoleThread(Console::start);
     try{
         auto settings = Settings::load(); 

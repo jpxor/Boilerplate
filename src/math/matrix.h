@@ -30,6 +30,16 @@ namespace bpm{
      * Matrix const operations
      */
 
+    static inline bool operator==(const mat4& a, const mat4& b) {
+        bool equals = true;
+        for(int i = 0; i < 4; ++i){
+            for(int j = 0; j < 4; ++j){
+                equals &= (a.e[i][j] == b.e[i][j]);
+            }
+        }
+        return equals;
+    }
+
     static inline mat4 operator*(const mat4& a, const mat4& b) { 
         mat4 M;
         for(int c = 0; c < 4; ++c){
@@ -79,21 +89,21 @@ namespace bpm{
         }
     }
 
-    static inline void make_scale(const vec3& s, mat4& M){
+    static inline void make_scale(mat4& M, const vec3& s){
         make_identity(M);
         M.e[0][0] *= s.x;
         M.e[1][1] *= s.y;
         M.e[2][2] *= s.z;
     }
 
-    static inline void make_translation(const vec3& v, mat4& M){
+    static inline void make_translation(mat4& M, const vec3& v){
         make_identity(M);
         M.e[3][0] = v.x;
         M.e[3][1] = v.y;
         M.e[3][2] = v.z;
     }
 
-    static inline void make_rotation(const vec3& axis, float rad, mat4& M){
+    static inline void make_rotation(mat4& M, const vec3& axis, float rad){
         float cos = cosf(rad);        
         float sin = sinf(rad);
         float lmcos = 1-cos;
@@ -132,7 +142,7 @@ namespace bpm{
     }
 
     //fails when forward axis aligns with up direction!
-    static inline void make_view(const vec3& pos, const vec3& forward, const vec3& up, mat4& M){
+    static inline void make_view(mat4& M, const vec3& pos, const vec3& forward, const vec3& up){
         //define camera axes (forward, right, up)
         vec3 f = forward;
         vec3 r = (f*up).normalize();
@@ -159,12 +169,49 @@ namespace bpm{
         M.e[3][3] =  1.f;
     }
 
-    static inline void make_view_lookat(const vec3& pos, const vec3& target, const vec3& up, mat4& M){
-        make_view(pos, (target-pos).normalize(), up, M);
+    static inline void make_view_lookat(mat4& M, const vec3& pos, const vec3& target, const vec3& up){
+        make_view(M, pos, (target-pos).normalize(), up);
     }
 
-    static inline void make_perspective(float y_fov, float aspect, float n, float f, mat4& M) {
+    static inline void make_perspective(mat4& M, float y_fov, float aspect, float n, float f) {
+        float const a = 1.f / tan(y_fov / 2.f);
+        
+            M.e[0][0] = a / aspect;
+            M.e[0][1] = 0.f;
+            M.e[0][2] = 0.f;
+            M.e[0][3] = 0.f;
+        
+            M.e[1][0] = 0.f;
+            M.e[1][1] = a;
+            M.e[1][2] = 0.f;
+            M.e[1][3] = 0.f;
+        
+            M.e[2][0] = 0.f;
+            M.e[2][1] = 0.f;
+            M.e[2][2] = -((f + n) / (f - n));
+            M.e[2][3] = -1.f;
+        
+            M.e[3][0] = 0.f;
+            M.e[3][1] = 0.f;
+            M.e[3][2] = -((2.f * f * n) / (f - n));
+            M.e[3][3] = 0.f;
+    }
 
+    static inline void make_orthographic(mat4& M, float l, float r, float b, float t, float n, float f)
+    {
+        M.e[0][0] = 2.f/(r-l);
+        M.e[0][1] = M.e[0][2] = M.e[0][3] = 0.f;
+    
+        M.e[1][1] = 2.f/(t-b);
+        M.e[1][0] = M.e[1][2] = M.e[1][3] = 0.f;
+    
+        M.e[2][2] = -2.f/(f-n);
+        M.e[2][0] = M.e[2][1] = M.e[2][3] = 0.f;
+        
+        M.e[3][0] = -(r+l)/(r-l);
+        M.e[3][1] = -(t+b)/(t-b);
+        M.e[3][2] = -(f+n)/(f-n);
+        M.e[3][3] = 1.f;
     }
 
 }
