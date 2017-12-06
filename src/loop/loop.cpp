@@ -6,61 +6,47 @@
 #include <stdio.h>
 #include <iostream>
 #include <thread>
+#include <chrono>
 
-#include "graphics/mesh.h"
-#include "load/loader.h"
 #include "window/window.h" 
 #include "loop/loop.h" 
 
 using std::vector;
 using std::unique_ptr;
 
-void render_mesh(unique_ptr<Mesh>& mesh){
-    glBindVertexArray( mesh->vao() );
-    glEnableVertexAttribArray(0);//vertices = 0
-    glEnableVertexAttribArray(1);//textures = 1
-    glEnableVertexAttribArray(2);//normals = 2
- 
-    glDrawElements(GL_TRIANGLES, mesh->vcount(), GL_UNSIGNED_INT, 0);
-
-    glDisableVertexAttribArray(0); 
-    glDisableVertexAttribArray(1); 
-    glDisableVertexAttribArray(2); 
-    glBindVertexArray(0); 
-}
-
 namespace Loop{
 
-    void run(Window::Instance window, void (*ucallback)(double), void (*rcallback)(double), int updates_per_second){
+    using std::chrono::steady_clock;
 
-        vector<float> positions;
-        vector<float> texcoords;
-        vector<float> normals;
-        vector<int> indices; 
-    
-        positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-        positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
-        positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-    
-        texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
-        texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
-        texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
-    
-        normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-        normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-        normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    
-        indices.push_back(0);
-        indices.push_back(1);
-        indices.push_back(2);
-        
-        MeshLoader meshloader; 
-        unique_ptr<Mesh> mesh = meshloader.load(positions, texcoords, normals, indices);
+    void run(Window::Instance window, void (*ucallback)(double,double), void (*rcallback)(double,double), int updates_per_second = 60){
+
+        double t = 0;
+        double dt = 1.0/updates_per_second;
+        double accum = 0;
+
+        auto past = steady_clock::now();
 
         while( ! window.shouldClose() ){
+
+            auto now = steady_clock::now();
+            std::chrono::duration<double> frame_time = (now - past);
+            past = now;
+
+            accum += frame_time.count(); 
+
+            /* Update here */
+            while( accum >= dt ){
+                ucallback(t, dt);
+                accum -= dt;
+                t += dt;
+            }
+
+            const double alpha = accum * updates_per_second;
+            //accum is seconds since last update
+            //alpha is linear interpolator between present and next states
+
             /* Render here */
-            glClear(GL_COLOR_BUFFER_BIT);  
-            render_mesh(mesh);
+            rcallback(accum, alpha);
           
             /* Swap front and back buffers */
             glfwSwapBuffers(window.id);
@@ -69,10 +55,6 @@ namespace Loop{
             glfwPollEvents();
         }
 
-        //cleanup
-        meshloader.unload(std::move(mesh));
-        Window::terminate();
-        exit(0);
     }
 
 }

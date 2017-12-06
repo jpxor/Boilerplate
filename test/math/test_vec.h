@@ -53,7 +53,7 @@ static bool test_vec3(){
     update(mutable_ops);
 
     result = (pass)? "True" : "False";
-    std::cout << "  > vec3 passed: " << result << std::endl;
+    std::cout << "  > vec3 passed: " << result << std::endl << std::endl;
     return pass;
 }
 
@@ -69,7 +69,7 @@ static bool test_vec(){
     //pass &= test_vec4();
 
     std::string result = (pass)? "True" : "False";
-    std::cout << "> test_vec passed: " << result << std::endl;
+    std::cout << "> test_vec passed: " << result << std::endl << std::endl;
     return pass;
 }
 

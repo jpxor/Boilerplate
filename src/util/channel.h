@@ -39,6 +39,7 @@ class Channel{
     //processes all items in the channel, and clears them.
     void process_all( std::function<void(std::unique_ptr<T>&)> process){
         std::unique_lock<std::mutex> lck(mtx);
+        if( channel.empty() ) return;
         for (std::unique_ptr<T> &item : channel){
             process(item);
         }

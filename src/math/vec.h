@@ -50,7 +50,8 @@ namespace bpm{
                 case 2: return z;
                 case 3: return w;
             }
-            assert(false);
+            assert(0 <= i && i <= 3);
+            return 0.f;
         }
         inline float& operator[](int i) {
             switch(i){
@@ -59,7 +60,8 @@ namespace bpm{
                 case 2: return z;
                 case 3: return w;
             }
-            assert(false);
+            assert(0 <= i && i <= 3);
+            return x;
         }
     };
 

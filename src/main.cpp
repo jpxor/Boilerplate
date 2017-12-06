@@ -31,25 +31,76 @@ void setWindowEvents(Window::Instance window)
     });
 }
 
-void update_callback(double dt){
+#include "graphics/mesh.h"
+#include "load/loader.h"
+
+MeshLoader meshloader; 
+std::unique_ptr<Mesh> mesh;
+
+void create_mesh(){
+    std::vector<float> positions;
+    std::vector<float> texcoords;
+    std::vector<float> normals;
+    std::vector<int> indices; 
+    
+    positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
+    positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
+    positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
+    
+    texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
+    texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
+    texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
+    
+    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    
+    indices.push_back(0);
+    indices.push_back(1);
+    indices.push_back(2);
+    
+    mesh = meshloader.load(positions, texcoords, normals, indices);
+}
+void render_mesh(std::unique_ptr<Mesh>& mesh){
+    glBindVertexArray( mesh->vao() );
+    glEnableVertexAttribArray(0);//vertices = 0
+    glEnableVertexAttribArray(1);//textures = 1
+    glEnableVertexAttribArray(2);//normals = 2
+ 
+    glDrawElements(GL_TRIANGLES, mesh->vcount(), GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(0); 
+    glDisableVertexAttribArray(1); 
+    glDisableVertexAttribArray(2); 
+    glBindVertexArray(0); 
+}
+void cleanup(){
+    meshloader.unload(std::move(mesh));
+}
+
+void update_callback(double t, double dt){
+    Events::dispatch_waiting_events();
     //pre_update(dt);
+    Events::dispatch_waiting_events();
     //update(dt);
+    Events::dispatch_waiting_events();
     //post_update(dt);
     Events::dispatch_waiting_events();
 }
 
-void render_callback(double dt){
+void render_callback(double dt, double alpha){
     //pre_render(dt);
     //render(dt);
     //post_render(dt);
+
+    glClear(GL_COLOR_BUFFER_BIT);  
+    render_mesh(mesh);
 }
 
-#include "test.h"
-
-
+// #include "test.h"
 int main(){
 
-    bptest::run();
+    //bptest::run();
 
     std::thread consoleThread(Console::start);
     try{
@@ -58,12 +109,15 @@ int main(){
 
         Graphics::init(settings); 
         setWindowEvents(window);
+        create_mesh();
         Loop::run(window, update_callback, render_callback, 40);
     }
     catch(const std::exception& e){
         std::cout << "Exception Caught: " << e.what() << std::endl;
     }
-    consoleThread.join();
+    
     Window::terminate();
+    cleanup();
     exit(0);
-}
+} 
+ 
