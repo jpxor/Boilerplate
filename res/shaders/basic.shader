@@ -1,4 +1,4 @@
-### VERTEX ### 
+### VERTEX ###
 
 #version 400 core
 
@@ -11,8 +11,10 @@ void main(){
 ### FRAGMENT ###
 
 #version 400 core
-out vec4 color;
+
+uniform vec4 input_colour;
+out vec4 frag_colour;
 
 void main(){
-    color = vec4(0.75, 0.75, 0.75, 1);
+    frag_colour = input_colour;
 }

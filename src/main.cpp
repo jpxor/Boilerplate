@@ -61,7 +61,14 @@ void create_mesh(){
     
     mesh = meshloader.load(positions, texcoords, normals, indices);
 }
+
+#include "graphics/shader/BasicShader.h"
 void render_mesh(std::unique_ptr<Mesh>& mesh){
+
+    BasicShader bshader; 
+    bshader.start(); 
+    bshader.load_color(0.8f, 0.25f, 0.8f);
+
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
     glEnableVertexAttribArray(1);//textures = 1
@@ -73,13 +80,14 @@ void render_mesh(std::unique_ptr<Mesh>& mesh){
     glDisableVertexAttribArray(1); 
     glDisableVertexAttribArray(2); 
     glBindVertexArray(0); 
+
+    bshader.stop();
 }
 void cleanup(){
     meshloader.unload(std::move(mesh));
 }
 
 void update_callback(double t, double dt){
-    Events::dispatch_waiting_events();
     //pre_update(dt);
     Events::dispatch_waiting_events();
     //update(dt);

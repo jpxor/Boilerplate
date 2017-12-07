@@ -1,15 +1,21 @@
 
+#pragma once
+
 #include "graphics/shader/shader.h"
+
 #include <unordered_map>
 
-class BasicShader : Shader {
+
+
+class BasicShader : public Shader {
     public:
     BasicShader();
     ~BasicShader();
-
-    // load_color(float r, float g, float b){
-    //     load_vec3( var_locations["location_color"], r,g,b ); 
-    // }
+    
+    
+    void load_color(float r, float g, float b){
+        load("input_colour", vec4(r,g,b,1) );  
+    }
 
     // load_view(){
     //     load_mat4( var_locations["location_view"] );
@@ -24,7 +30,6 @@ class BasicShader : Shader {
     // }
     
     private: 
-    std::unordered_map<std::string, int> var_locations;
 
     void bindAttributes(){
         bind_attr(POSITION_ATTR, "position");
@@ -32,7 +37,4 @@ class BasicShader : Shader {
         bind_attr(NORMAL_ATTR, "normal");
     }
 
-    void getAllUniformLocations(){
-        
-    }
 };

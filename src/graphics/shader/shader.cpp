@@ -19,8 +19,6 @@ void Shader::init(std::string &vs_source, std::string &fs_source){
     //dev only, is expensive operation
     glValidateProgram(program);
 
-    //virtual function to be implemented in concrete shader
-    getAllUniformLocations();
 }
 
 unsigned int Shader::load_shader(std::string &source, unsigned int shader_type){
@@ -43,8 +41,16 @@ unsigned int Shader::load_shader(std::string &source, unsigned int shader_type){
 }
 
 int Shader::getUniformLocation(std::string uniform_name){
-    const char *raw_name = uniform_name.c_str();
-    return glGetUniformLocation(program, raw_name);
+    int loc = locations[uniform_name];
+    if( loc > 0 ){
+        loc = loc-1;
+    }
+    else{
+        const char *raw_name = uniform_name.c_str();
+        loc = glGetUniformLocation(program, raw_name);
+        locations[uniform_name] = loc+1;
+    }
+    return loc;
 }
 
 void Shader::bind_attr(unsigned int index, std::string attr_name){
@@ -52,6 +58,32 @@ void Shader::bind_attr(unsigned int index, std::string attr_name){
     glBindAttribLocation(program, index, raw_name);
 }
 
+
+void Shader::load(std::string uniform, float val){
+    auto loc = getUniformLocation(uniform);
+    glUniform1f(loc, val);
+}
+
+void Shader::load(std::string uniform, const vec2& vec){
+    auto loc = getUniformLocation(uniform);
+    glUniform2f(loc, vec.x, vec.y);
+}
+
+void Shader::load(std::string uniform, const vec3& vec){
+    auto loc = getUniformLocation(uniform);
+    glUniform3f(loc, vec.x, vec.y, vec.z);
+}
+
+void Shader::load(std::string uniform, const vec4& vec){
+    auto loc = getUniformLocation(uniform);
+    glUniform4f(loc, vec.x, vec.y, vec.z, vec.w);
+}
+
+void Shader::load(std::string uniform, const mat4& matrix){
+    auto loc = getUniformLocation(uniform);
+    glUniformMatrix4fv(loc, 16, false, (float*)matrix.e);
+}
+ 
 Shader::~Shader(){
     stop();
     glDetachShader(program, vertex_shader);
