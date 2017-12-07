@@ -69,6 +69,11 @@ void render_mesh(std::unique_ptr<Mesh>& mesh){
     bshader.start(); 
     bshader.load_color(0.8f, 0.25f, 0.8f);
 
+    mat4 M;
+    bpm::make_rotation(M, vec3(1,0,1), 0.65f);
+    //bpm::make_translation(M, vec3(0.2f,0,0));
+    bshader.load_transform(M); 
+
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
     glEnableVertexAttribArray(1);//textures = 1

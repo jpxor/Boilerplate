@@ -81,7 +81,7 @@ void Shader::load(std::string uniform, const vec4& vec){
 
 void Shader::load(std::string uniform, const mat4& matrix){
     auto loc = getUniformLocation(uniform);
-    glUniformMatrix4fv(loc, 16, false, (float*)matrix.e);
+    glUniformMatrix4fv(loc, 1, GL_FALSE, (float*)matrix.e);
 }
  
 Shader::~Shader(){

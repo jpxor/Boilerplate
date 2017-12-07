@@ -104,13 +104,14 @@ namespace bpm{
     }
 
     static inline void make_rotation(mat4& M, const vec3& axis, float rad){
+        vec3 uaxis = axis.normalized();
         float cos = cosf(rad);        
         float sin = sinf(rad);
         float lmcos = 1-cos;
 
-        float ux = axis.x;
-        float uy = axis.y;
-        float uz = axis.z;
+        float ux = uaxis.x;
+        float uy = uaxis.y;
+        float uz = uaxis.z;
 
         float xy = ux*uy*lmcos;
         float xz = ux*uz*lmcos;

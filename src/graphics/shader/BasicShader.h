@@ -17,6 +17,10 @@ class BasicShader : public Shader {
         load("input_colour", vec4(r,g,b,1) );  
     }
 
+    void load_transform(mat4 matrix){
+        load("transform", matrix);  
+    }
+
     // load_view(){
     //     load_mat4( var_locations["location_view"] );
     // }
