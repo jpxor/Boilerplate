@@ -38,30 +38,33 @@ MeshLoader meshloader;
 std::unique_ptr<Mesh> mesh;
 
 void create_mesh(){
-    std::vector<float> positions;
-    std::vector<float> texcoords;
-    std::vector<float> normals;
-    std::vector<int> indices; 
+    // std::vector<float> positions;
+    // std::vector<float> texcoords;
+    // std::vector<float> normals;
+    // std::vector<int> indices; 
     
-    positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-    positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
-    positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
+    // positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
+    // positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
+    // positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
     
-    texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
-    texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
-    texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
+    // texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
+    // texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
+    // texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
     
-    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    // normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    // normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
+    // normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
     
-    indices.push_back(0);
-    indices.push_back(1);
-    indices.push_back(2);
+    // indices.push_back(0);
+    // indices.push_back(1);
+    // indices.push_back(2);
     
-    mesh = meshloader.load(positions, texcoords, normals, indices);
+    // mesh = meshloader.load(positions, texcoords, normals, indices);
+    mesh = Load::OBJ(meshloader, "../res/suzanne.obj");
 }
 
+#include <ctime>
+#include <math.h> 
 #include "graphics/shader/BasicShader.h"
 void render_mesh(std::unique_ptr<Mesh>& mesh){
 
@@ -69,10 +72,15 @@ void render_mesh(std::unique_ptr<Mesh>& mesh){
     bshader.start(); 
     bshader.load_color(0.8f, 0.25f, 0.8f);
 
-    mat4 M;
-    bpm::make_rotation(M, vec3(1,0,1), 0.65f);
-    //bpm::make_translation(M, vec3(0.2f,0,0));
-    bshader.load_transform(M); 
+    time_t t = time(0);
+    vec3 pos(0,0,sin(((double)t)/10));
+
+    mat4 M,P,T,V;
+    bpm::make_identity(M);
+    bpm::make_view_lookat(V,pos,vec3(0,1,0),vec3(0,0,1));
+    bpm::make_perspective(P,0.9f, 1, 0.1f, 100.f);
+    bpm::make_translation(T,pos); 
+    bshader.load_transform(M*V*T); 
 
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0

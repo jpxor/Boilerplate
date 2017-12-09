@@ -18,3 +18,7 @@ private:
     GLuint createAndBindIndiceBuffer(vector<int>& indices);
 };
 
+
+namespace Load {
+    unique_ptr<Mesh> OBJ(MeshLoader& loader, const std::string& file);
+}
