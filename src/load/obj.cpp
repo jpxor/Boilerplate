@@ -67,26 +67,27 @@ struct triangle{
     }
 };
 
-static std::unordered_map<vert,int> vert_index_map;
-
 static void process_vert(const vert& v, vector<int>& indices, 
                          vector<float>& positions, const vector<vec3>& pos,
                          vector<float>& texcoords, const vector<vec2>& vt,
                          vector<float>& normals,   const vector<vec3>& vn )
 {
+    static std::unordered_map<vert,int> vert_index_map;
+    static int vcount = 0;
+
     //if this vertex has already been processed (or one identical to it), 
     //then add its existing index position.
     int vindex = vert_index_map[v] - 1;
-    if( vindex >= 0 ){
+    if( vindex >= 0 ){ 
         indices.push_back(vindex); 
         return;
     }
 
     //this is a new unique vertex, so we must add a new indexed entry
     //and track that index
-    vindex = indices.size();
-    vert_index_map[v] = vindex + 1;
-
+    vindex = vcount++;
+    vert_index_map[v] = vcount; // = vindex+1
+    
     indices.push_back(vindex);
 
     vec3 p = pos[v.vi];
@@ -96,7 +97,7 @@ static void process_vert(const vert& v, vector<int>& indices,
 
     vec2 t = vt[v.vti];
     texcoords.push_back(t.x);
-    texcoords.push_back(t.y);
+    texcoords.push_back(1-t.y);
 
     vec3 n = vn[v.vni];
     normals.push_back(n.x);

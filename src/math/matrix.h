@@ -146,7 +146,7 @@ namespace bpm{
     static inline void make_view(mat4& M, const vec3& pos, const vec3& forward, const vec3& up){
         //define camera axes (forward, right, up)
         vec3 f = forward;
-        vec3 r = (f*up).normalize();
+        vec3 r = f*up;
         vec3 u = r*f;
 
         M.e[0][0] =  r.x;
@@ -164,9 +164,10 @@ namespace bpm{
         M.e[2][2] = -f.z;
         M.e[2][3] =   0.f;
     
-        M.e[3][0] =  -pos.x;
-        M.e[3][1] =  -pos.y;
-        M.e[3][2] =  -pos.z;
+        M.e[3][0] = dot(r,pos);
+        M.e[3][1] = dot(u,pos);
+        M.e[3][2] = dot(f,pos);
+
         M.e[3][3] =  1.f;
     }
 

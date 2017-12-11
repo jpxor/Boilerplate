@@ -18,7 +18,7 @@ namespace Loop{
 
     using std::chrono::steady_clock;
 
-    void run(Window::Instance window, void (*ucallback)(double,double), void (*rcallback)(double,double), int updates_per_second = 60){
+    void run(Window::Instance window, void (*ucallback)(double,double), void (*rcallback)(double,double,double), int updates_per_second = 60){
 
         double t = 0;
         double dt = 1.0/updates_per_second;
@@ -46,7 +46,7 @@ namespace Loop{
             //alpha is linear interpolator between present and next states
 
             /* Render here */
-            rcallback(accum, alpha);
+            rcallback(t, accum, alpha);
           
             /* Swap front and back buffers */
             glfwSwapBuffers(window.id);

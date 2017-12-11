@@ -6,5 +6,5 @@
 namespace Loop{
     // void setUpdateCallback( void (*ucallback)(double,double) );
     // void setRenderCallback( void (*rcallback)(double) );
-    void run(Window::Instance, void (*ucallback)(double,double), void (*rcallback)(double,double), int updates_per_second);
+    void run(Window::Instance, void (*ucallback)(double,double), void (*rcallback)(double,double,double), int updates_per_second);
 }

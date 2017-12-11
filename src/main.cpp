@@ -38,49 +38,26 @@ MeshLoader meshloader;
 std::unique_ptr<Mesh> mesh;
 
 void create_mesh(){
-    // std::vector<float> positions;
-    // std::vector<float> texcoords;
-    // std::vector<float> normals;
-    // std::vector<int> indices; 
-    
-    // positions.push_back(-0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-    // positions.push_back( 0.0f); positions.push_back( 0.5f); positions.push_back( 0.0f);
-    // positions.push_back( 0.5f); positions.push_back(-0.5f); positions.push_back( 0.0f);
-    
-    // texcoords.push_back( 0.0f); texcoords.push_back( 1.0f);
-    // texcoords.push_back( 0.5f); texcoords.push_back( 0.0f);
-    // texcoords.push_back( 1.0f); texcoords.push_back( 1.0f);
-    
-    // normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    // normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    // normals.push_back( 0.0f); normals.push_back( 0.0f); normals.push_back( 1.0f);
-    
-    // indices.push_back(0);
-    // indices.push_back(1);
-    // indices.push_back(2);
-    
-    // mesh = meshloader.load(positions, texcoords, normals, indices);
-    mesh = Load::OBJ(meshloader, "../res/suzanne.obj");
+    mesh = Load::OBJ(meshloader, "../res/smooth-suzanne.obj");
 }
 
 #include <ctime>
 #include <math.h> 
 #include "graphics/shader/BasicShader.h"
-void render_mesh(std::unique_ptr<Mesh>& mesh){
+void render_mesh(double t, std::unique_ptr<Mesh>& mesh){
 
     BasicShader bshader; 
     bshader.start(); 
     bshader.load_color(0.8f, 0.25f, 0.8f);
 
-    time_t t = time(0);
-    vec3 pos(0,0,sin(((double)t)/10));
+    float rad = 4;
+    vec3 pos( rad*sin(t) , rad*cos(t) , 1);
 
-    mat4 M,P,T,V;
+    mat4 M,V,P;
     bpm::make_identity(M);
-    bpm::make_view_lookat(V,pos,vec3(0,1,0),vec3(0,0,1));
-    bpm::make_perspective(P,0.9f, 1, 0.1f, 100.f);
-    bpm::make_translation(T,pos); 
-    bshader.load_transform(M*V*T); 
+    bpm::make_view_lookat(V, pos, vec3(0,0,0), vec3(0,0,1));
+    bpm::make_perspective(P, 0.7854f, 1, 0.1f, 100.f);
+    bshader.load_transform(P*V*M); 
 
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
@@ -109,13 +86,13 @@ void update_callback(double t, double dt){
     Events::dispatch_waiting_events();
 }
 
-void render_callback(double dt, double alpha){
+void render_callback(double t, double dt, double alpha){
     //pre_render(dt);
     //render(dt);
     //post_render(dt);
 
     glClear(GL_COLOR_BUFFER_BIT);  
-    render_mesh(mesh);
+    render_mesh(t, mesh);
 }
 
 // #include "test.h"
@@ -130,6 +107,7 @@ int main(){
 
         Graphics::init(settings); 
         setWindowEvents(window);
+
         create_mesh();
         Loop::run(window, update_callback, render_callback, 40);
     }
