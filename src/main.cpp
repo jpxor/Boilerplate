@@ -43,12 +43,16 @@ void create_mesh(){
 
 #include <ctime>
 #include <math.h> 
-#include "graphics/shader/BasicShader.h"
+#include "graphics/shader/AmbientShader.h"
 void render_mesh(double t, std::unique_ptr<Mesh>& mesh){
 
-    BasicShader bshader; 
-    bshader.start(); 
-    bshader.load_color(0.8f, 0.25f, 0.8f);
+    // BasicShader bshader; 
+    AmbientShader ashader;
+    ashader.start();  
+    ashader.load_colour(0.9f, 0.9f, 0.9f);
+    ashader.load_skylight(0.75f, 0.89f, 0.99f);
+    ashader.load_groundlight(0.2f, 0.3f, 0.15f);
+    ashader.load_upvec(0,0,1);
 
     float rad = 4;
     vec3 pos( rad*sin(t) , rad*cos(t) , 1);
@@ -57,7 +61,7 @@ void render_mesh(double t, std::unique_ptr<Mesh>& mesh){
     bpm::make_identity(M);
     bpm::make_view_lookat(V, pos, vec3(0,0,0), vec3(0,0,1));
     bpm::make_perspective(P, 0.7854f, 1, 0.1f, 100.f);
-    bshader.load_transform(P*V*M); 
+    ashader.load_transform(P*V*M); 
 
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
@@ -71,7 +75,7 @@ void render_mesh(double t, std::unique_ptr<Mesh>& mesh){
     glDisableVertexAttribArray(2); 
     glBindVertexArray(0); 
 
-    bshader.stop();
+    ashader.stop();
 }
 void cleanup(){
     meshloader.unload(std::move(mesh));
@@ -90,8 +94,8 @@ void render_callback(double t, double dt, double alpha){
     //pre_render(dt);
     //render(dt);
     //post_render(dt);
-
     glClear(GL_COLOR_BUFFER_BIT);  
+    glClear(GL_DEPTH_BUFFER_BIT);
     render_mesh(t, mesh);
 }
 
@@ -109,6 +113,7 @@ int main(){
         setWindowEvents(window);
 
         create_mesh();
+        
         Loop::run(window, update_callback, render_callback, 40);
     }
     catch(const std::exception& e){

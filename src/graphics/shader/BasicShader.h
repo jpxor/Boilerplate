@@ -3,10 +3,6 @@
 
 #include "graphics/shader/shader.h"
 
-#include <unordered_map>
-
-
-
 class BasicShader : public Shader {
     public:
     BasicShader();

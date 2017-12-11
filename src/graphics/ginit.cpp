@@ -13,6 +13,8 @@ namespace Graphics{
               std::cout << "Error: " << glewGetErrorString(err) << std::endl;
               throw std::runtime_error("Failed to initialize GLEW library");
             }
+            glEnable(GL_CULL_FACE);
+            glEnable(GL_DEPTH_TEST);
         }
         
     }
