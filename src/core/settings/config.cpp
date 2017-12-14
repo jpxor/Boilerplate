@@ -7,8 +7,8 @@ namespace Settings
     { 
         Configuration config = {};
         config.fullscreen = false;
-        config.width = 960;
-        config.height = 540;
+        config.width = 960*1.6;
+        config.height = 540*1.6;
         config.graphics_api = Settings::GraphicsAPI::OpenGL;
         return config;
     }

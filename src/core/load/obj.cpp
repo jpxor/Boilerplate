@@ -70,11 +70,9 @@ struct triangle{
 static void process_vert(const vert& v, vector<int>& indices, 
                          vector<float>& positions, const vector<vec3>& pos,
                          vector<float>& texcoords, const vector<vec2>& vt,
-                         vector<float>& normals,   const vector<vec3>& vn )
+                         vector<float>& normals,   const vector<vec3>& vn, 
+                         std::unordered_map<vert,int>& vert_index_map, int& vcount )
 {
-    static std::unordered_map<vert,int> vert_index_map;
-    static int vcount = 0;
-
     //if this vertex has already been processed (or one identical to it), 
     //then add its existing index position.
     int vindex = vert_index_map[v] - 1;
@@ -182,11 +180,14 @@ namespace Load {
         vector<float> texcoords;
         vector<float> normals;
         vector<int> indices;
+
+        std::unordered_map<vert,int> vert_index_map;
+        int vcount = 0;
         
         for( triangle t : tris ){
-            process_vert(t.a, indices, positions, v, texcoords, vt, normals, vn);
-            process_vert(t.b, indices, positions, v, texcoords, vt, normals, vn);
-            process_vert(t.c, indices, positions, v, texcoords, vt, normals, vn);
+            process_vert(t.a, indices, positions, v, texcoords, vt, normals, vn, vert_index_map, vcount);
+            process_vert(t.b, indices, positions, v, texcoords, vt, normals, vn, vert_index_map, vcount);
+            process_vert(t.c, indices, positions, v, texcoords, vt, normals, vn, vert_index_map, vcount);
         }
 
         return loader.load(positions, texcoords, normals, indices);

@@ -24,8 +24,12 @@ class AmbientShader : public Shader {
         load("upvec", vec3(x,y,z) );  
     }
 
-    void load_transform(mat4 matrix){
-        load("transform", matrix);  
+    void load_transform_model(mat4 matrix){
+        load("model_transform", matrix);  
+    }
+
+    void load_transform_vp(mat4 matrix){
+        load("vp_transform", matrix);  
     }
     
     private: 
