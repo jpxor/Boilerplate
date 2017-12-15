@@ -33,10 +33,22 @@ mat4 Ball_Transform;
 
 mat4 Ball_Rotation;
 mat4 Ball_Translation;
+mat4 Ball_Curve;
+mat4 rotate90;
+
+vec3 ball_dir(1,0,0);
+float ball_speed = 24;
+float ball_rotation = 0.05;
 
 int Left_Paddle_Dir = 0;
 int Right_Paddle_Dir = 0;
 float paddle_speed = 0.5;
+
+float left_paddle_height = 10;
+float right_paddle_height = 10;
+
+bool missed = false;
+int paused = 20;
 
 void create_mesh(){
     ball = Load::OBJ(meshloader, "../src/demo/pong/res/mesh/pongball.obj");
@@ -50,6 +62,7 @@ void init_transforms(){
 
     bpm::make_identity(Ball_Rotation);
     bpm::make_identity(Ball_Translation);
+    bpm::make_identity(Ball_Curve);
 
     mat4 tmp;
     bpm::make_translation(tmp,vec3(-24,0,0));
@@ -61,10 +74,12 @@ void init_transforms(){
     bpm::make_rotation(tmp,vec3(0,0,1), 3.14159f );
     Right_Paddle_Transform = Right_Paddle_Transform * tmp;
 
-    bpm::make_rotation(Ball_Rotation,vec3(0,1,1), 0.05f );
-    bpm::make_translation(Ball_Translation,vec3(-0.05,0,0));
+    ball_dir.normalize();
+    bpm::make_rotation(Ball_Rotation,vec3(0,0,1), ball_rotation );
+    bpm::make_translation(Ball_Translation, ball_speed*ball_dir);
+    bpm::make_rotation(rotate90,vec3(0,0,1), 3.14159f/2 );
 }
- 
+
 
 void render_mesh(double t, std::unique_ptr<Mesh>& mesh, mat4& model_transform){
 
@@ -106,7 +121,78 @@ void cleanup(){
 
 void update_callback(double t, double dt){
     
-    Ball_Transform = Ball_Translation * Ball_Transform * Ball_Rotation;
+    if(paused > 0){
+        --paused;
+    }
+    else{
+    //physics (n steps)
+    int n = 4;
+    dt = dt/n;
+    for( int i = 0; i < n; ++i)
+    {
+        //add curve
+        vec3 curve_dir = rotate90 * ball_dir;
+        float curve_influence = 0.001f*ball_speed*ball_rotation;
+        ball_dir += curve_influence*curve_dir;
+        ball_dir.normalize();
+
+        //move ball
+        bpm::make_translation(Ball_Translation, dt*ball_speed*ball_dir);
+        bpm::make_rotation(Ball_Rotation,vec3(0,0,1), ball_rotation );
+        Ball_Transform = Ball_Translation * Ball_Transform * Ball_Rotation;
+
+        //check for collisions
+        float ballxpos = Ball_Transform.e[3][0];
+        float ballypos = Ball_Transform.e[3][1];
+
+        if( ballxpos < -23 || ballxpos > 23 ){
+            float paddleypos;
+            float paddle_height;
+            int rotation_mod;
+            float paddle_move;
+            if( ballxpos < 0 ){
+                paddleypos = Left_Paddle_Transform.e[3][1];
+                paddle_height = left_paddle_height;
+                paddle_move = Left_Paddle_Dir;
+                rotation_mod = -1;
+            }
+            else{
+                paddleypos = Right_Paddle_Transform.e[3][1];
+                paddle_height = right_paddle_height;
+                paddle_move = Right_Paddle_Dir;
+                rotation_mod = 1;
+            }
+
+            if( !missed && fabs(ballypos-paddleypos) <= paddle_height/2 ){
+                Ball_Transform.e[3][0] = 23*bpm::sign(ballxpos);
+                ball_dir = bpm::reflect(ball_dir, vec3(1,0,0));
+                ball_rotation += 0.05*paddle_move;
+                ball_speed *= 1.05;
+            }
+            else{
+                missed = true;
+            }
+
+            //reset
+            if( ballxpos < -46 || ballxpos > 46 ){
+                ball_dir = bpm::reflect(ball_dir, vec3(1,0,0));
+                ball_rotation /= 2;
+                ball_speed = 24;
+                Ball_Transform.e[3][0] = 0;
+                Ball_Transform.e[3][1] = 0;
+                missed = false;
+                paused = 10;
+            }
+        }
+        if( ballypos < -16 || ballypos > 16 ){
+            Ball_Transform.e[3][1] = 16*bpm::sign(ballypos);
+            ball_dir = bpm::reflect(ball_dir, vec3(0,1,0));
+        }
+        
+        //increment time
+        t += dt;
+    }
+    }
 
     mat4 paddle_move;
     bpm::make_translation(paddle_move,vec3(0,paddle_speed*Left_Paddle_Dir,0));

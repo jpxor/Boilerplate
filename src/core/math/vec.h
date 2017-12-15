@@ -5,6 +5,10 @@
 
 namespace bpm{
 
+    template <typename T> int sign(T val) {
+        return (T(0) < val) - (val < T(0));
+    }
+
     struct vec2{
         float x,y;
 
@@ -34,6 +38,7 @@ namespace bpm{
         }
 
         inline vec3 normalized() const { return vec3(*this).normalize(); }
+
     };
 
     struct vec4{
@@ -105,6 +110,11 @@ namespace bpm{
             a.z*b.x - a.x*b.z,
             a.x*b.y - a.y*b.x 
         ); 
+    }
+
+    //reflect
+    static inline vec3 reflect(vec3 v, vec3 n) {
+        return v - 2*dot(v,n)*n;
     }
 
     /**
