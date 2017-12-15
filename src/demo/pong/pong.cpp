@@ -51,8 +51,8 @@ bool missed = false;
 int paused = 20;
 
 void create_mesh(){
-    ball = Load::OBJ(meshloader, "../src/demo/pong/res/mesh/pongball.obj");
-    paddle = Load::OBJ(meshloader, "../src/demo/pong/res/mesh/pongpad.obj");
+    ball = Load::OBJ(meshloader, "../res/demo/pong/mesh/pongball.obj");
+    paddle = Load::OBJ(meshloader, "../res/demo/pong/mesh/pongpad.obj");
 }
 
 void init_transforms(){
