@@ -26,6 +26,8 @@
 float Left_Score = 0; 
 float Right_Score = 0;
 float wave_score = 0;
+float wave_scale = 1;
+float target_wave_scale = 10;
 
 MeshLoader meshloader; 
 std::unique_ptr<Mesh> ball;
@@ -125,7 +127,7 @@ void render_wave(double t, std::unique_ptr<Mesh>& mesh, vec4 params, vec4 color)
     WaveShader ashader;
     ashader.start();  
     ashader.load_time(t);
-    ashader.load_scale(10);
+    ashader.load_scale(wave_scale);
     ashader.load_score(wave_score);
     ashader.load_spike(Ball_Transform.e[3][0]);
     ashader.load_total_length(30);
@@ -202,6 +204,17 @@ void update_callback(double t, double dt){
         }
     }
 
+    if(wave_scale < (target_wave_scale) ){
+        if(wave_scale < 14) {
+            wave_scale += 10*dt;
+        }
+    }
+    else{
+        if(wave_scale > -14) {
+            wave_scale -= 10*dt;
+        }
+    }
+
     if(paused > 0){
         --paused;
     }
@@ -253,6 +266,7 @@ void update_callback(double t, double dt){
             else{
                 if(!missed){
                     missed = true;
+                    target_wave_scale = 0;
                     if(ballxpos < 0){
                         Right_Score += 1;
                     }
@@ -272,6 +286,7 @@ void update_callback(double t, double dt){
                 Ball_Transform.e[3][1] = 0;
                 missed = false;
                 paused = 10;
+                target_wave_scale = 10;
             }
         }
         if( ballypos < -16 || ballypos > 16 ){
