@@ -4,7 +4,7 @@
 
 uniform mat4 model_transform;
 uniform mat4 vp_transform;
-uniform vec3 wave_axis;
+uniform vec4 wave_axis;
 uniform vec4 wave_params;
 uniform vec3 skylight;
 uniform vec3 groundlight;
@@ -31,9 +31,9 @@ void main(){
 
     float yscale = scale / (1 + 0.5*abs(spike-position.x));
     float xpos = 10*3.14*position.x / total_length; 
-    vec4 tempos = position;
-    gl_Position = position;
-    gl_Position.y = 
+
+    gl_Position = position; 
+    gl_Position.y =
         yscale*0.5*sin(a*time + b*xpos) 
         + 0.25*cos(-c*time + d*xpos) 
         + score*sin(xpos/10)

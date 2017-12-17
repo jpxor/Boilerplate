@@ -45,7 +45,7 @@ class WaveShader : public Shader {
     }
 
     void load_waveaxis(float x, float y, float z){
-        load("wave_axis", vec3(x,y,z) );  
+        load("wave_axis", vec4(x,y,z,0) );  
     }
 
     void load_transform_model(mat4 matrix){
