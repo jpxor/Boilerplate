@@ -1,3 +1,4 @@
+#pragma once
 
 #include "graphics/glewstatic.h"
 #include "math/matrix.h"

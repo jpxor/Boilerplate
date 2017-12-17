@@ -18,14 +18,19 @@
 #include <ctime>
 #include <math.h> 
 #include "graphics/shader/AmbientShader.h"
+#include "graphics/shader/WaveShader.h"
 
 #include "graphics/mesh.h"
 #include "load/loader.h"
 
+float Left_Score = 0; 
+float Right_Score = 0;
+float wave_score = 0;
 
 MeshLoader meshloader; 
 std::unique_ptr<Mesh> ball;
 std::unique_ptr<Mesh> paddle;
+std::unique_ptr<Mesh> wave;
 
 mat4 Left_Paddle_Transform;
 mat4 Right_Paddle_Transform;
@@ -36,7 +41,10 @@ mat4 Ball_Translation;
 mat4 Ball_Curve;
 mat4 rotate90;
 
-vec3 ball_dir(1,0,0);
+mat4 Perspective;
+vec3 campos( 0, 0, 40);
+
+vec3 ball_dir(0,0,0);
 float ball_speed = 24;
 float ball_rotation = 0.05;
 
@@ -53,6 +61,34 @@ int paused = 20;
 void create_mesh(){
     ball = Load::OBJ(meshloader, "../res/demo/pong/mesh/pongball.obj");
     paddle = Load::OBJ(meshloader, "../res/demo/pong/mesh/pongpad.obj");
+
+    std::vector<float> verts;
+    std::vector<float> norms;
+    std::vector<float> tex;
+    std::vector<int> indices;
+
+    int dfc = 30;
+    float step = 0.1f;
+    int i = 0;
+    for(float x = -dfc; x < dfc; x += step){
+        verts.push_back(x);
+        verts.push_back(0);
+        verts.push_back(0);
+
+        norms.push_back(0);
+        norms.push_back(0);
+        norms.push_back(1);
+
+        tex.push_back(0);
+        tex.push_back(0);
+
+        if(i>0){
+            indices.push_back(i-1);
+            indices.push_back(i);
+        }
+        ++i;
+    }
+    wave = meshloader.load(verts, tex, norms, indices);
 }
 
 void init_transforms(){
@@ -64,6 +100,8 @@ void init_transforms(){
     bpm::make_identity(Ball_Translation);
     bpm::make_identity(Ball_Curve);
 
+    bpm::make_perspective(Perspective, 0.7854f, 1.778f, 0.1f, 100.f);
+
     mat4 tmp;
     bpm::make_translation(tmp,vec3(-24,0,0));
     Left_Paddle_Transform = Left_Paddle_Transform * tmp;
@@ -74,6 +112,8 @@ void init_transforms(){
     bpm::make_rotation(tmp,vec3(0,0,1), 3.14159f );
     Right_Paddle_Transform = Right_Paddle_Transform * tmp;
 
+    srand (time(NULL));
+    ball_dir.x = (rand()%100 > 50)? 1:-1;
     ball_dir.normalize();
     bpm::make_rotation(Ball_Rotation,vec3(0,0,1), ball_rotation );
     bpm::make_translation(Ball_Translation, ball_speed*ball_dir);
@@ -81,9 +121,42 @@ void init_transforms(){
 }
 
 
-void render_mesh(double t, std::unique_ptr<Mesh>& mesh, mat4& model_transform){
+void render_wave(double t, std::unique_ptr<Mesh>& mesh, vec4 params, vec4 color){
+    WaveShader ashader;
+    ashader.start();  
+    ashader.load_time(t);
+    ashader.load_scale(10);
+    ashader.load_score(wave_score);
+    ashader.load_spike(Ball_Transform.e[3][0]);
+    ashader.load_total_length(30);
+    ashader.load_waveaxis(1,1,0);
+    ashader.load_colour(color.x, color.y, color.z, color.w);
+    ashader.load_params(params.x, params.y, params.z, params.w);
 
-    // BasicShader bshader; 
+    mat4 M,V;
+    bpm::make_identity(M);
+    bpm::make_view_lookat(V, campos, vec3(0,0,0), vec3(0,1,0));
+
+    ashader.load_transform_model(M);
+    ashader.load_transform_vp(Perspective*V); 
+
+    glBindVertexArray( mesh->vao() );
+    glEnableVertexAttribArray(0);//vertices = 0
+    glEnableVertexAttribArray(1);//textures = 1
+    glEnableVertexAttribArray(2);//normals = 2
+ 
+    glDrawElements(GL_LINES, mesh->vcount(), GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(0); 
+    glDisableVertexAttribArray(1); 
+    glDisableVertexAttribArray(2); 
+    glBindVertexArray(0); 
+
+    ashader.stop();
+}
+
+
+void render_mesh(double t, std::unique_ptr<Mesh>& mesh, mat4& model_transform){
     AmbientShader ashader;
     ashader.start();  
     ashader.load_colour(1.f, 1.f, 1.f);
@@ -91,14 +164,11 @@ void render_mesh(double t, std::unique_ptr<Mesh>& mesh, mat4& model_transform){
     ashader.load_groundlight(0.3f, 0.5f, 0.25f);
     ashader.load_upvec(0,0,1);
 
-    vec3 campos( 0, 0, 40);
-
-    mat4 V,P;
+    mat4 V;
     bpm::make_view_lookat(V, campos, vec3(0,0,0), vec3(0,1,0));
-    bpm::make_perspective(P, 0.7854f, 1.778f, 0.1f, 100.f);
 
     ashader.load_transform_model(model_transform); 
-    ashader.load_transform_vp(P*V); 
+    ashader.load_transform_vp(Perspective*V); 
 
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
@@ -120,7 +190,18 @@ void cleanup(){
 }
 
 void update_callback(double t, double dt){
-    
+
+    if(wave_score < (Right_Score-Left_Score) ){
+        if(wave_score < 14) {
+            wave_score += dt;
+        }
+    }
+    else{
+        if(wave_score > -14) {
+            wave_score -= dt;
+        }
+    }
+
     if(paused > 0){
         --paused;
     }
@@ -170,7 +251,16 @@ void update_callback(double t, double dt){
                 ball_speed *= 1.05;
             }
             else{
-                missed = true;
+                if(!missed){
+                    missed = true;
+                    if(ballxpos < 0){
+                        Right_Score += 1;
+                    }
+                    else{
+                        Left_Score += 1;
+                    }
+                    std::cout << Left_Score << " :: " << Right_Score << std::endl;
+                }
             }
 
             //reset
@@ -187,6 +277,21 @@ void update_callback(double t, double dt){
         if( ballypos < -16 || ballypos > 16 ){
             Ball_Transform.e[3][1] = 16*bpm::sign(ballypos);
             ball_dir = bpm::reflect(ball_dir, vec3(0,1,0));
+            ball_rotation /= 2;
+
+            float fdot = fabs(bpm::dot(ball_dir, vec3(0,1,0)));
+            if(fdot > 0.05){
+                float rotation = 0.10*fdot;
+                if(ball_dir.x < 0){
+                    rotation = -rotation;
+                }
+                if(ball_dir.y > 0){
+                    rotation = -rotation;
+                }
+                mat4 rot;
+                bpm::make_rotation(rot, vec3(0,0,1), rotation);
+                ball_dir = rot*ball_dir;
+            }
         }
         
         //increment time
@@ -212,6 +317,11 @@ void render_callback(double t, double dt, double alpha){
     render_mesh(t, paddle, Left_Paddle_Transform);
     render_mesh(t, paddle, Right_Paddle_Transform);
     render_mesh(t, ball, Ball_Transform);
+
+    render_wave(t, wave, vec4(1,2,3,4),    0.5*vec4(1,0,1,0.5));
+    render_wave(t*2, wave, vec4(4,3,2,1),  0.5*vec4(1,1,0,0.5));
+    render_wave(t*3, wave, vec4(-3,2,1,2), 0.5*vec4(0,0,1.8,0.5));
+    
 }
 
 static int window_width=1, window_height=1;
