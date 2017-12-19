@@ -43,12 +43,12 @@ mat4 Ball_Translation;
 mat4 Ball_Curve;
 mat4 rotate90;
 
-mat4 Perspective;
+mat4 Perspective, View;
 vec3 campos( 0, 0, 40);
 
 vec3 ball_dir(0,0,0);
 float ball_speed = 24;
-float ball_rotation = 0.05;
+float ball_rotation = 0;
 
 int Left_Paddle_Dir = 0;
 int Right_Paddle_Dir = 0;
@@ -135,12 +135,11 @@ void render_wave(double t, std::unique_ptr<Mesh>& mesh, vec4 params, vec4 color)
     ashader.load_colour(color.x, color.y, color.z, color.w);
     ashader.load_params(params.x, params.y, params.z, params.w);
 
-    mat4 M,V;
+    mat4 M;
     bpm::make_identity(M);
-    bpm::make_view_lookat(V, campos, vec3(0,0,0), vec3(0,1,0));
 
     ashader.load_transform_model(M);
-    ashader.load_transform_vp(Perspective*V); 
+    ashader.load_transform_vp(Perspective*View); 
 
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
@@ -166,11 +165,8 @@ void render_mesh(double t, std::unique_ptr<Mesh>& mesh, mat4& model_transform){
     ashader.load_groundlight(0.3f, 0.5f, 0.25f);
     ashader.load_upvec(0,0,1);
 
-    mat4 V;
-    bpm::make_view_lookat(V, campos, vec3(0,0,0), vec3(0,1,0));
-
     ashader.load_transform_model(model_transform); 
-    ashader.load_transform_vp(Perspective*V); 
+    ashader.load_transform_vp(Perspective*View); 
 
     glBindVertexArray( mesh->vao() );
     glEnableVertexAttribArray(0);//vertices = 0
@@ -192,6 +188,12 @@ void cleanup(){
 }
 
 void update_callback(double t, double dt){
+
+    vec3 ball_pos( Ball_Transform.e[3][0], Ball_Transform.e[3][1], Ball_Transform.e[3][2] );
+
+    float vdist = 40;
+    campos = vec3(0, 0, vdist);
+    bpm::make_view_lookat(View, campos, vec3(0,0,0), vec3(0,1,0));
 
     if(wave_score < (Right_Score-Left_Score) ){
         if(wave_score < 14) {
@@ -247,7 +249,7 @@ void update_callback(double t, double dt){
             if( ballxpos < 0 ){
                 paddleypos = Left_Paddle_Transform.e[3][1];
                 paddle_height = left_paddle_height;
-                paddle_move = Left_Paddle_Dir;
+                paddle_move = -Left_Paddle_Dir;
                 rotation_mod = -1;
             }
             else{

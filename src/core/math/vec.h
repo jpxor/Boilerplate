@@ -39,6 +39,8 @@ namespace bpm{
 
         inline vec3 normalized() const { return vec3(*this).normalize(); }
 
+        inline vec3& negated() const { return vec3(*this).negate(); }
+
     };
 
     struct vec4{

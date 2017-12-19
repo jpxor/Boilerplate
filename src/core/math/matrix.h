@@ -24,6 +24,13 @@ namespace bpm{
                 }
             }
         }
+        void set(const mat4& other) {
+            for(int i = 0; i < 4; ++i){
+                for(int j = 0; j < 4; ++j){
+                    e[i][j] = other.e[i][j];
+                }
+            }
+        }
     };
 
     /**
@@ -146,8 +153,8 @@ namespace bpm{
     static inline void make_view(mat4& M, const vec3& pos, const vec3& forward, const vec3& up){
         //define camera axes (forward, right, up)
         vec3 f = forward;
-        vec3 r = f*up;
-        vec3 u = r*f;
+        vec3 r = (f*up).normalize();
+        vec3 u = (r*f).normalize();
 
         M.e[0][0] =  r.x;
         M.e[0][1] =  u.x;
@@ -163,12 +170,11 @@ namespace bpm{
         M.e[2][1] =  u.z;
         M.e[2][2] = -f.z;
         M.e[2][3] =   0.f;
-    
-        M.e[3][0] = dot(r,pos);
-        M.e[3][1] = dot(u,pos);
-        M.e[3][2] = dot(f,pos);
 
-        M.e[3][3] =  1.f;
+        M.e[3][0] =-dot(r, pos);
+        M.e[3][1] =-dot(u, pos);
+        M.e[3][2] = dot(f, pos);
+        M.e[3][3] = 1;
     }
 
     static inline void make_view_lookat(mat4& M, const vec3& pos, const vec3& target, const vec3& up){
