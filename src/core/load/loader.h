@@ -3,14 +3,16 @@
 #include <vector>
 #include <memory>
 #include "graphics/mesh.h"
+#include "graphics/model.h"
+#include "graphics/material.h"
 
 using std::vector;
-using std::unique_ptr;
+using std::shared_ptr;
 
 class MeshLoader{
 public:
-    unique_ptr<Mesh> load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices);
-    void unload(unique_ptr<Mesh>);
+    shared_ptr<Mesh> load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices);
+    void unload(shared_ptr<Mesh>);
     ~MeshLoader();
 
 private:
@@ -20,5 +22,6 @@ private:
 
 
 namespace Load {
-    unique_ptr<Mesh> OBJ(MeshLoader& loader, const std::string& file);
+    vector<shared_ptr<Mesh>> obj_mesh(MeshLoader& loader, const std::string& file);
+    vector<shared_ptr<Model>> obj_model(MeshLoader& loader, const std::string& file);
 }

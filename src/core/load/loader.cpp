@@ -7,8 +7,8 @@
 #include <unordered_map>
 
 using std::vector;
-using std::unique_ptr;
-using std::make_unique;
+using std::shared_ptr;
+using std::make_shared;
 using std::unordered_map;
 
 //private constants
@@ -20,7 +20,7 @@ const int NORMALS_DATA = 2;
 static unordered_map<GLuint, vector<GLuint>> cleanup_map = {};
  
 
-unique_ptr<Mesh> MeshLoader::load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices){
+shared_ptr<Mesh> MeshLoader::load(vector<float>& positions, vector<float>& texcoords, vector<float>& normals, vector<int>& indices){
     GLuint vao;
     glGenVertexArrays(1, &vao);
 
@@ -39,7 +39,7 @@ unique_ptr<Mesh> MeshLoader::load(vector<float>& positions, vector<float>& texco
     vbos.push_back(vbo_text);
     vbos.push_back(vbo_norm);
     
-    auto mesh = make_unique<Mesh>(vao, indices.size() ); // C++14
+    auto mesh = make_shared<Mesh>(vao, indices.size() ); // C++14
     return mesh;
 }
 
@@ -75,7 +75,7 @@ GLuint MeshLoader::storeDataInAttributeList(int idx, int attr_size, vector<float
 }
 
 
-void MeshLoader::unload(unique_ptr<Mesh> mesh){
+void MeshLoader::unload(shared_ptr<Mesh> mesh){
     GLuint vao = mesh->vao();
     glDeleteVertexArrays( 1, &vao );
 

@@ -68,6 +68,13 @@ struct triangle{
     }
 };
 
+struct file_data {
+    vector<vec3> v;
+    vector<vec3> vc;
+    vector<vec2> vt;
+    vector<vec3> vn;
+};
+
 static void process_vert(const vert& v, vector<int>& indices, 
                          vector<float>& positions, const vector<vec3>& pos,
                          vector<float>& texcoords, const vector<vec2>& vt,
@@ -105,13 +112,14 @@ static void process_vert(const vert& v, vector<int>& indices,
 }
 
 
-static shared_ptr<Mesh> mesh_from_obj_stream(MeshLoader& loader, std::ifstream& in){
+static shared_ptr<Model> model_from_obj_stream(MeshLoader& loader, std::ifstream& in, std::unordered_map<std::string, std::shared_ptr<Material>>& material_map, file_data& fdata){
 
-        vector<vec3> v;
-        vector<vec3> vc;
-        vector<vec2> vt;
-        vector<vec3> vn;
+        vector<vec3>& v = fdata.v;
+        vector<vec3>& vc = fdata.vc;
+        vector<vec2>& vt = fdata.vt;
+        vector<vec3>& vn = fdata.vn;
         vector<triangle> tris;
+        std::shared_ptr<Material> material;
 
         std::string line;
         while (std::getline(in,line)) 
@@ -161,6 +169,11 @@ static shared_ptr<Mesh> mesh_from_obj_stream(MeshLoader& loader, std::ifstream& 
                 s >> c;
                 tris.emplace_back(a,b,c);
             }
+            else if (type == "us")//usemtl
+            {
+                std::string mat_name = line.substr(7);
+                material = material_map[mat_name];
+            }
             
             //don't start reading from the next object!
             if( in.peek() == 'o' )  {
@@ -190,11 +203,80 @@ static shared_ptr<Mesh> mesh_from_obj_stream(MeshLoader& loader, std::ifstream& 
             process_vert(t.c, indices, positions, v, texcoords, vt, normals, vn, vert_index_map, vcount);
         }
 
-        return loader.load(positions, texcoords, normals, indices);
+        auto mesh = loader.load(positions, texcoords, normals, indices);
+        return std::make_shared<Model>(mesh, material);
     }
 
+    static std::shared_ptr<Material> material_from_mtl_stream(std::ifstream& in){
+
+        vec3 diffuse_color(1,1,1);
+        vec3 specular_color(1,1,1);
+        float specular_exp = 50;
+        float transparency = 1;
+
+        std::string line;
+        while (std::getline(in,line)) 
+        {
+            // end of material def
+            if( line.length() == 0 ){
+                break;
+            }
+
+            std::string type = line.substr(0,2);
+            if (type == "Ns"){
+                specular_exp = std::stof(line.substr(3));
+                continue;
+            }
+
+            if (type == "Kd"){
+                std::istringstream s(line.substr(3));
+                s >> diffuse_color.x; 
+                s >> diffuse_color.y; 
+                s >> diffuse_color.z;
+                continue;
+            }
+
+            if (type == "Ks"){
+                std::istringstream s(line.substr(3));
+                s >> specular_color.x; 
+                s >> specular_color.y; 
+                s >> specular_color.z;
+                continue;
+            }
+
+            if (type == "d "){
+                // dissolved == transparency
+                transparency = std::stof(line.substr(2));
+                continue;
+            }
+        }
+        auto material = std::make_shared<BasicMaterial>(diffuse_color, specular_color, specular_exp, transparency);
+        return material;
+    }
+
+    static void load_materials(std::unordered_map<std::string, std::shared_ptr<Material>>& material_map, std::string& mat_file){
+        std::ifstream in(mat_file, std::ios::in);
+        if(!in){
+            std::cout << "fatal error: could not load obj material file: " << mat_file << std::endl;
+            return;
+        }
+        std::string line;
+        while (std::getline(in,line)) 
+        {
+            std::string type = line.substr(0,6);
+            if (type == "newmtl"){
+                std::string mat_name = line.substr(7);
+                auto mat = material_from_mtl_stream(in);
+                material_map[mat_name] = mat;
+                
+                continue;
+            }
+        }
+    }
+
+
 namespace Load {
-    vector<shared_ptr<Mesh>> obj_mesh(MeshLoader& loader, const std::string& obj_file){
+    vector<shared_ptr<Model>> obj_model(MeshLoader& loader, const std::string& obj_file){
 
         std::ifstream in(obj_file, std::ios::in);
         if(!in){
@@ -202,20 +284,25 @@ namespace Load {
             exit(1);
         } 
 
-        vector<shared_ptr<Mesh>> mesh_list;
+        file_data fdata;
+        vector<shared_ptr<Model>> model_list;
+        std::unordered_map<std::string, std::shared_ptr<Material>> materials;
 
-        //find objects only 'o'
         std::string line;
         while (std::getline(in,line)) 
         {
             std::string type = line.substr(0,2);
             if (type == "o "){
                 std::string obj_name = line.substr(2);
-                mesh_list.push_back(mesh_from_obj_stream(loader, in));
+                model_list.push_back(model_from_obj_stream(loader, in, materials, fdata));
+                continue;
+            }
 
-                std::cout << obj_name << std::endl;
+            if (type == "mt"){
+                std::string mat_file = line.substr(7);
+                load_materials(materials, mat_file);
             }
         }
-        return mesh_list;
+        return model_list;
     }
 }

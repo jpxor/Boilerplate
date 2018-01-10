@@ -4,7 +4,7 @@
 #include "graphics/shader/shader.h"
 
 class BasicShader : public Shader {
-    public:
+public:
     BasicShader();
     ~BasicShader();
     
@@ -16,21 +16,8 @@ class BasicShader : public Shader {
     void load_transform(mat4 matrix){
         load("transform", matrix);  
     }
-
-    // load_view(){
-    //     load_mat4( var_locations["location_view"] );
-    // }
-
-    // load_projection(){
-    //     load_mat4( var_locations["location_projection"] );
-    // }
-
-    // load_transform(){
-    //     load_mat4( var_locations["location_transform"] );
-    // }
     
-    private: 
-
+private: 
     void bindAttributes(){
         bind_attr(POSITION_ATTR, "position");
         bind_attr(TEXTURE_ATTR, "texcoord");

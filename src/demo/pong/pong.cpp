@@ -30,9 +30,9 @@ float wave_scale = 1;
 float target_wave_scale = 10;
 
 MeshLoader meshloader; 
-std::unique_ptr<Mesh> ball;
-std::unique_ptr<Mesh> paddle;
-std::unique_ptr<Mesh> wave;
+std::shared_ptr<Mesh> ball;
+std::shared_ptr<Mesh> paddle;
+std::shared_ptr<Mesh> wave;
 
 mat4 Left_Paddle_Transform;
 mat4 Right_Paddle_Transform;
@@ -60,9 +60,11 @@ float right_paddle_height = 10;
 bool missed = false;
 int paused = 20;
 
+vector<shared_ptr<Model>> models;
+
 void create_mesh(){
-    ball = Load::OBJ(meshloader, "../res/demo/pong/mesh/pongball.obj");
-    paddle = Load::OBJ(meshloader, "../res/demo/pong/mesh/pongpad.obj");
+    ball = Load::obj_mesh(meshloader, "../res/demo/pong/mesh/pongball.obj")[0];
+    paddle = Load::obj_mesh(meshloader, "../res/demo/pong/mesh/pongpad.obj")[0];
 
     std::vector<float> verts;
     std::vector<float> norms;
@@ -123,7 +125,7 @@ void init_transforms(){
 }
 
 
-void render_wave(double t, std::unique_ptr<Mesh>& mesh, vec4 params, vec4 color){
+void render_wave(double t, std::shared_ptr<Mesh>& mesh, vec4 params, vec4 color){
     WaveShader ashader;
     ashader.start();  
     ashader.load_time(t);
@@ -157,7 +159,7 @@ void render_wave(double t, std::unique_ptr<Mesh>& mesh, vec4 params, vec4 color)
 }
 
 
-void render_mesh(double t, std::unique_ptr<Mesh>& mesh, mat4& model_transform){
+void render_mesh(double t, std::shared_ptr<Mesh>& mesh, mat4& model_transform){
     AmbientShader ashader;
     ashader.start();  
     ashader.load_colour(1.f, 1.f, 1.f);
@@ -338,7 +340,6 @@ void render_callback(double t, double dt, double alpha){
     render_wave(t, wave, vec4(1,2,3,4),    0.5*vec4(1,0,1,0.5));
     render_wave(t*2, wave, vec4(4,3,2,1),  0.5*vec4(1,1,0,0.5));
     render_wave(t*3, wave, vec4(-3,2,1,2), 0.5*vec4(0,0,1.8,0.5));
-    
 }
 
 static int window_width=1, window_height=1;
@@ -393,11 +394,12 @@ void setWindowEvents(Window::Instance window)
     });
 }
 
+#include "graphics/material.h"
 int main(){
     std::thread consoleThread(Console::start);
     try{
         auto settings = Settings::load(); 
-        auto window = Window::init("Boilerplate", settings);
+        auto window = Window::init("Pong", settings);
 
         Graphics::init(settings); 
         setWindowEvents(window);

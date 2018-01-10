@@ -4,5 +4,6 @@
 #include <memory>
 
 class Texture{
+public:
     GLuint texid;
 };

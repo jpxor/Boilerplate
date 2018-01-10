@@ -38,6 +38,7 @@ public:
     void load(std::string uniform, const vec3& vec);
     void load(std::string uniform, const vec4& vec);
     void load(std::string uniform, const mat4& matrix);
+    void load(std::string uniform, const std::vector<vec3>& vec_array);
 
 private:
     std::unordered_map<std::string, int> locations;
