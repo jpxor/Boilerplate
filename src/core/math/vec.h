@@ -19,6 +19,7 @@ namespace bpm{
     struct vec3{
         float x,y,z;
 
+        vec3(float val) : x(val), y(val), z(val) {;;}
         vec3(float _x, float _y) : x(_x), y(_y), z(0) {;;}
         vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {;;}
         vec3(const vec3& other) : x(other.x), y(other.y), z(other.z) {;;}

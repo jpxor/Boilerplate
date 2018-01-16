@@ -47,8 +47,7 @@ int Shader::getUniformLocation(std::string uniform_name) {
         loc = loc-1;
     }
     else{
-        const char *raw_name = uniform_name.c_str();
-        loc = glGetUniformLocation(program, raw_name);
+        loc = glGetUniformLocation(program, uniform_name.c_str());
         locations[uniform_name] = loc+1;
     }
     return loc;
